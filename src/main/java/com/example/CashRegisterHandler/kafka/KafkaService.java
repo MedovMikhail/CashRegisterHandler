@@ -9,6 +9,8 @@ import org.springframework.validation.annotation.Validated;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 @Service
 public class KafkaService {
@@ -33,22 +35,22 @@ public class KafkaService {
             kafkaProducerSender.sendMessage("Not enough cash", topic, key);
         } else {
             ExchangedCurrencyDTO exchangedCurrencyDTO = getExchangedCurrencyDTO(
-                    exchangeValuesDTO, targetCurrencyCount, targetStoredCurrency
+                    exchangeValuesDTO, targetCurrencyCount
             );
             kafkaProducerSender.sendMessage(exchangedCurrencyDTO, topic, key);
         }
     }
 
-    private ExchangedCurrencyDTO getExchangedCurrencyDTO(ExchangeValuesDTO exchangeValuesDTO, BigDecimal targetCurrencyCount, BigDecimal targetStoredCurrency) {
+    private ExchangedCurrencyDTO getExchangedCurrencyDTO(ExchangeValuesDTO exchangeValuesDTO, BigDecimal targetCurrencyCount) {
         ExchangedCurrencyDTO exchangedCurrencyDTO = new ExchangedCurrencyDTO();
         //Считаем остаток в кассе валюты, из которой переводит пользователь
-        exchangedCurrencyDTO.setBaseStoredCurrency(
+        exchangedCurrencyDTO.setBaseStoredCurrencyDiff(
                 exchangeValuesDTO.getBaseStoredCurrency()
                         .add(exchangeValuesDTO.getBaseCurrencyCount())
                         .setScale(2, RoundingMode.HALF_UP)
         );
-        exchangedCurrencyDTO.setTargetCurrencyCount(targetCurrencyCount);
-        exchangedCurrencyDTO.setTargetStoredCurrency(targetStoredCurrency);
+        exchangedCurrencyDTO.setTargetStoredCurrencyDiff(targetCurrencyCount);
+        exchangedCurrencyDTO.setDateOfExchange(ZonedDateTime.now(ZoneId.of("Europe/Moscow")));
         return exchangedCurrencyDTO;
     }
 }
