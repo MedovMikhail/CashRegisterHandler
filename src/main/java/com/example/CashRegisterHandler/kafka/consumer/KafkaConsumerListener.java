@@ -18,6 +18,7 @@ public class KafkaConsumerListener {
     @Autowired
     private KafkaService kafkaService;
 
+    // слушатель для обработки обмена валют
     @KafkaListener(topics = "handle-exchange", groupId = "group1")
     void listenerProcessingCurrencyExchange(ConsumerRecord<String, String> record) {
         log.info("Received message [{}] in group1", record.value());
@@ -30,6 +31,7 @@ public class KafkaConsumerListener {
         }
     }
 
+    // слушатель для пересчета валют в кассе
     @KafkaListener(topics = "recount-currency", groupId = "group1")
     void listenerRecountStoredCurrency(ConsumerRecord<String, String> record) {
         log.info("Received message [{}] in group1", record.value());

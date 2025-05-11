@@ -5,8 +5,6 @@ import com.example.CashRegisterHandler.dto.ExchangeValuesDTO;
 import com.example.CashRegisterHandler.dto.ExchangedCurrencyDTO;
 import com.example.CashRegisterHandler.dto.StoredCurrencyDTO;
 import com.example.CashRegisterHandler.kafka.producer.KafkaProducerSender;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -36,6 +34,7 @@ public class KafkaService {
                 .getTargetStoredCurrency()
                 .subtract(targetCurrencyCount)
                 .setScale(2, RoundingMode.HALF_UP);
+        // если остаток в кассе валют меньше нуля, то отправляем сообщение об этом
         if (targetStoredCurrency.compareTo(BigDecimal.ZERO) < 0) {
             kafkaProducerSender.sendMessage("Not enough cash", topic, key);
         } else {
@@ -73,6 +72,7 @@ public class KafkaService {
         exchangedCurrencyDTO.setBaseStoredCurrencyDiff(
                 exchangeValuesDTO.getBaseCurrencyCount().setScale(2, RoundingMode.HALF_UP)
         );
+        // заполняем поля информацией
         exchangedCurrencyDTO.setExchangeRate(exchangeValuesDTO.getExchangeRate());
         exchangedCurrencyDTO.setTargetStoredCurrencyDiff(targetCurrencyCount);
         exchangedCurrencyDTO.setDateOfExchange(ZonedDateTime.now(ZoneId.of("Europe/Moscow")));
