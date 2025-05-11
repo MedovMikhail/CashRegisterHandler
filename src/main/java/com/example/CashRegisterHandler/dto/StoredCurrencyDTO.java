@@ -14,5 +14,6 @@ public class StoredCurrencyDTO {
     private Long id;
     private BigDecimal count;
     private String currencyCode;
+    private BigDecimal exchangeRate;
     private Long cashRegisterId;
 }
