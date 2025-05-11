@@ -1,7 +1,9 @@
 package com.example.CashRegisterHandler.kafka;
 
+import com.example.CashRegisterHandler.dto.CurrencyRecountDTO;
 import com.example.CashRegisterHandler.dto.ExchangeValuesDTO;
 import com.example.CashRegisterHandler.dto.ExchangedCurrencyDTO;
+import com.example.CashRegisterHandler.dto.StoredCurrencyDTO;
 import com.example.CashRegisterHandler.kafka.producer.KafkaProducerSender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.List;
 
 @Service
 public class KafkaService {
@@ -18,7 +22,7 @@ public class KafkaService {
     @Autowired
     private KafkaProducerSender kafkaProducerSender;
 
-    public void exchangeCurrency(@Validated ExchangeValuesDTO exchangeValuesDTO, String key, String topic) {
+    public void exchangeCurrency(@Validated ExchangeValuesDTO exchangeValuesDTO, String topic, String key) {
         
         //Считаем количество валюты, в которую хочет перевести пользователь
         BigDecimal targetCurrencyCount = exchangeValuesDTO
@@ -39,6 +43,27 @@ public class KafkaService {
             );
             kafkaProducerSender.sendMessage(exchangedCurrencyDTO, topic, key);
         }
+    }
+
+    public void recountCurrency(CurrencyRecountDTO recountDTO, String topic, String key) {
+        HashMap<String, BigDecimal> currencyRates = recountDTO.getCurrencyRates();
+        for (StoredCurrencyDTO storedCurrency: recountDTO.getStoredCurrencies()) {
+            // актуальный курс валюты
+            BigDecimal newExchangeRate = currencyRates.get(storedCurrency.getCurrencyCode());
+            // получаем соотношение актуального курса к старому
+            BigDecimal exchangeCurrencyScale = newExchangeRate.divide(
+                    storedCurrency.getExchangeRate(),
+                    8,
+                    RoundingMode.HALF_UP
+            );
+            // Умножаем количество валюты на соотношение курсов
+            storedCurrency.setCount(
+                    storedCurrency.getCount().multiply(exchangeCurrencyScale).setScale(2, RoundingMode.HALF_UP)
+            );
+            // задаем актуальный курс валюты
+            storedCurrency.setExchangeRate(newExchangeRate);
+        }
+        kafkaProducerSender.sendMessage(recountDTO.getStoredCurrencies(), topic, key);
     }
 
     private ExchangedCurrencyDTO getExchangedCurrencyDTO(ExchangeValuesDTO exchangeValuesDTO, BigDecimal targetCurrencyCount) {
