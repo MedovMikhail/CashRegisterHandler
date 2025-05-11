@@ -49,6 +49,7 @@ public class KafkaService {
                         .add(exchangeValuesDTO.getBaseCurrencyCount())
                         .setScale(2, RoundingMode.HALF_UP)
         );
+        exchangedCurrencyDTO.setExchangeRate(exchangeValuesDTO.getExchangeRate());
         exchangedCurrencyDTO.setTargetStoredCurrencyDiff(targetCurrencyCount);
         exchangedCurrencyDTO.setDateOfExchange(ZonedDateTime.now(ZoneId.of("Europe/Moscow")));
         return exchangedCurrencyDTO;

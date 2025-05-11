@@ -12,6 +12,7 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 public class ExchangedCurrencyDTO {
 
+    private BigDecimal exchangeRate;
     private BigDecimal baseStoredCurrencyDiff;
     private BigDecimal targetStoredCurrencyDiff;
     private ZonedDateTime dateOfExchange;
