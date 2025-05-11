@@ -5,6 +5,8 @@ import com.example.CashRegisterHandler.dto.ExchangeValuesDTO;
 import com.example.CashRegisterHandler.dto.ExchangedCurrencyDTO;
 import com.example.CashRegisterHandler.dto.StoredCurrencyDTO;
 import com.example.CashRegisterHandler.kafka.producer.KafkaProducerSender;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -14,7 +16,6 @@ import java.math.RoundingMode;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
-import java.util.List;
 
 @Service
 public class KafkaService {
@@ -70,9 +71,7 @@ public class KafkaService {
         ExchangedCurrencyDTO exchangedCurrencyDTO = new ExchangedCurrencyDTO();
         //Считаем остаток в кассе валюты, из которой переводит пользователь
         exchangedCurrencyDTO.setBaseStoredCurrencyDiff(
-                exchangeValuesDTO.getBaseStoredCurrency()
-                        .add(exchangeValuesDTO.getBaseCurrencyCount())
-                        .setScale(2, RoundingMode.HALF_UP)
+                exchangeValuesDTO.getBaseCurrencyCount().setScale(2, RoundingMode.HALF_UP)
         );
         exchangedCurrencyDTO.setExchangeRate(exchangeValuesDTO.getExchangeRate());
         exchangedCurrencyDTO.setTargetStoredCurrencyDiff(targetCurrencyCount);
